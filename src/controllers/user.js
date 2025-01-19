@@ -4,7 +4,6 @@ const { ApiResponse } = require("../utils/ApiResponse.js");
 const { uploadOnCloudinary } = require("../utils/cloudinary.js");
 const User = require("../models/user.model.js"); // we import it here because it directly connect with the mongoose / mongoDB
 const jwt = require("jsonwebtoken");
-const { application } = require("express");
 
 const cookieOptions = {
   httpOnly: true,
@@ -271,10 +270,12 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 // Update user's cover image
 const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;
-  if (!coverImageLocalPath) throw new ApiError(400, "coverImage file is required!!");
+  if (!coverImageLocalPath)
+    throw new ApiError(400, "coverImage file is required!!");
 
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-  if (!coverImage.url) throw new ApiError(400, "Error while uploading cover image");
+  if (!coverImage.url)
+    throw new ApiError(400, "Error while uploading cover image");
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
