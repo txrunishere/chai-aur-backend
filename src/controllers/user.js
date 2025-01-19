@@ -4,6 +4,7 @@ const { ApiResponse } = require("../utils/ApiResponse.js");
 const { uploadOnCloudinary } = require("../utils/cloudinary.js");
 const User = require("../models/user.model.js"); // we import it here because it directly connect with the mongoose / mongoDB
 const jwt = require("jsonwebtoken");
+const { application } = require("express");
 
 const cookieOptions = {
   httpOnly: true,
@@ -244,7 +245,51 @@ const updateAccDetails = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Account Updated Successfully"));
 });
 
+// Update user's avatar
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+  if (!avatarLocalPath) throw new ApiError(400, "Avatar file is required!!");
 
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  if (!avatar.url) throw new ApiError(400, "Error while uploading avatar");
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: avatar.url,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User Avatar Updated!!"));
+});
+
+// Update user's cover image
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file?.path;
+  if (!coverImageLocalPath) throw new ApiError(400, "coverImage file is required!!");
+
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+  if (!coverImage.url) throw new ApiError(400, "Error while uploading cover image");
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        coverImage: coverImage.url,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User Cover Image Updated!!"));
+});
 
 module.exports = {
   registerUser,
@@ -254,4 +299,6 @@ module.exports = {
   changeCurrentUserPassword,
   getCurrentUser,
   updateAccDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
 };
